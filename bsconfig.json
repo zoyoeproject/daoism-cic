@@ -1,0 +1,24 @@
+{
+  "name": "mini-cic",
+  "version": "0.1.0",
+  "sources": [
+  {
+    "dir" : "src",
+  }
+  ],
+  "package-specs": {
+    "module": "commonjs",
+    "in-source": false
+  },
+
+  "suffix": ".bs.js",
+
+  "bs-dependencies": [
+    "bs-webapi",
+  ],
+
+  "warnings": {
+    "error" : "+101"
+  },
+  "refmt": 3
+}
