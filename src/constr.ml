@@ -233,6 +233,10 @@ let array_fold_left2 f init lsx lsy =
   let (acc, _) = Array.fold_left (fun (acc,i) c -> (f acc c lsy.(i), i+1)) (init, 0) lsx in
   acc
 
+let array_fold_left2_i f init lsx lsy =
+  let (acc, _) = Array.fold_left (fun (acc,i) c -> (f i acc c lsy.(i), i+1)) (init, 0) lsx in
+  acc
+
 let array_map2 f lsx lsy =
   Array.mapi (fun i c -> (f c lsy.(i))) lsx
 
@@ -417,3 +421,39 @@ let map_with_binders g f l c0 = match c0 with
     let bl' = Array.map (fun x -> f l' x) bl in
     if tl' == tl && bl' == bl then c0
     else mkFix (ln,(lna,tl',bl'))
+
+(*********************)
+(*      Lifting      *)
+(*********************)
+
+(* The generic lifting function *)
+let rec exliftn el c =
+  let open Esubst in
+  match c with
+  | Rel i -> mkRel(reloc_rel i el)
+  | _ -> map_with_binders el_lift exliftn el c
+
+(* Lifting the binding depth across k bindings *)
+
+let liftn n k c =
+  let open Esubst in
+  match el_liftn (pred k) (el_shft n el_id) with
+    | ELID -> c
+    | el -> exliftn el c
+
+let lift n = liftn n 1
+
+let fold_with_full_binders g f n acc c =
+  let open Context.Rel.Declaration in
+  match c with
+  | Rel _ | Var _  | Const _ | Ind _ | Construct _  | Int _ | Float _ -> acc
+  | Prod (na,t,c) -> f (g (LocalAssum (na,t)) n) (f n acc t) c
+  | Lambda (na,t,c) -> f (g (LocalAssum (na,t)) n) (f n acc t) c
+  | LetIn (na,b,t,c) -> f (g (LocalDef (na,b,t)) n) (f n (f n acc b) t) c
+  | App (c,l) -> Array.fold_left (f n) (f n acc c) l
+  | Evar (_,l) -> Array.fold_left (f n) acc l
+  | Case (_,p,c,bl) -> Array.fold_left (f n) (f n (f n acc p) c) bl
+  | Fix (_,(lna,tl,bl)) ->
+      let n' = array_fold_left2_i (fun i c n t -> g (LocalAssum (n,lift i t)) c) n lna tl in
+      let fd = array_map2 (fun t b -> (t,b)) tl bl in
+      Array.fold_left (fun acc (t,b) -> f n' (f n acc t) b) acc fd
