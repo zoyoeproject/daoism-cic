@@ -11,16 +11,22 @@ struct
   let to_string id = id
 
   module Set = Set.Make (String)
+  module Map = Map.Make (String)
 
 end
 
 module Name =
 struct
+  exception GetIdOfAnonymous
   type t = Anonymous     (** anonymous identifier *)
          | Name of Id.t  (** non-anonymous identifier *)
 
   let mk_name id =
     Name id
+
+  let get_id = function
+    | Anonymous -> raise GetIdOfAnonymous
+    | Name id -> id
 
   let is_anonymous = function
     | Anonymous -> true

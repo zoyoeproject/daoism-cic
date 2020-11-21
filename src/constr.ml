@@ -457,3 +457,10 @@ let fold_with_full_binders g f n acc c =
       let n' = array_fold_left2_i (fun i c n t -> g (LocalAssum (n,lift i t)) c) n lna tl in
       let fd = array_map2 (fun t b -> (t,b)) tl bl in
       Array.fold_left (fun acc (t,b) -> f n' (f n acc t) b) acc fd
+
+(* declaration for env *)
+type rel_declaration = (t, t) Context.Rel.Declaration.pt
+type named_declaration = (t, t) Context.Named.Declaration.pt
+
+type rel_context = rel_declaration list
+type named_context = named_declaration list
