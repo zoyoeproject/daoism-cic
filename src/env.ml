@@ -3,9 +3,11 @@ open Names
 module ConstantMap =  Map.Make(Constant)
 
 type global_entry = {
-  entry_body: Constr.t;
+  entry_body: Constr.t option;
   entry_type: Constr.t;
 }
+
+let mk_entry a b = {entry_body=a; entry_type=b}
 
 type env = {
   env_globals : global_entry ConstantMap.t;
@@ -15,6 +17,10 @@ type env = {
 }
 
 let lookup_constant env c = ConstantMap.find c env.env_globals
+
+let add_constant c body t env = {
+    env with env_globals = ConstantMap.add c (mk_entry body t) env.env_globals
+  }
 
 let empty_env = {
   env_globals = ConstantMap.empty;
