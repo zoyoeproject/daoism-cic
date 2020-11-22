@@ -15,6 +15,8 @@ type env = {
   env_nb_rel: int;
 }
 
+let lookup_constant env c = ConstantMap.find c env.env_globals
+
 let empty_env = {
   env_globals = ConstantMap.empty;
   env_named_context = Id.Map.empty;
