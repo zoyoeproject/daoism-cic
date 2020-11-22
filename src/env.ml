@@ -1,5 +1,4 @@
 open Names
-open Constr
 
 module ConstantMap =  Map.Make(Constant)
 
@@ -11,7 +10,7 @@ type global_entry = {
 type env = {
   env_globals : global_entry ConstantMap.t;
   env_named_context : Constr.named_declaration Id.Map.t;
-  env_rel_context   : Constr.named_context;
+  env_rel_context   : Constr.rel_context;
   env_nb_rel: int;
 }
 
