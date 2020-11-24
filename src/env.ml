@@ -13,6 +13,7 @@ type env = {
   env_globals : global_entry ConstantMap.t;
   env_named_context : Constr.named_declaration Id.Map.t;
   env_rel_context   : Constr.rel_context;
+  env_export        : Id.Set.t;
   env_nb_rel: int;
 }
 
@@ -22,10 +23,16 @@ let add_constant c body t env = {
     env with env_globals = ConstantMap.add c (mk_entry body t) env.env_globals
   }
 
+let export id env = {
+  env with env_export = Id.Set.add id env.env_export
+}
+
+
 let empty_env = {
   env_globals = ConstantMap.empty;
   env_named_context = Id.Map.empty;
   env_rel_context = [];
+  env_export = Id.Set.empty;
   env_nb_rel = 0;
 }
 
