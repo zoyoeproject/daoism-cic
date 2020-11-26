@@ -10,6 +10,8 @@
 
 type t = int
 
+let compare = Int.compare
+
 (*
 let repr x = x
 let unsafe_of_int x = x

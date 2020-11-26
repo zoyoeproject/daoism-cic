@@ -180,3 +180,14 @@ type constructor = inductive   (* designates the inductive type *)
                  * int         (* the index of the constructor
                                   BEWARE: indexing starts from 1. *)
 
+let compare_inductive ind1 ind2 =
+  let (mut1, i1) = ind1 in
+  let (mut2, i2) = ind2 in
+  let c = MutInd.compare mut1 mut2 in
+  if c = 0 then Int.compare i1 i2 else c
+
+let compare_constructor c1 c2 =
+  let (ind1, i1) = c1 in
+  let (ind2, i2) = c2 in
+  let c = compare_inductive ind1 ind2 in
+  if c = 0 then Int.compare i1 i2 else c

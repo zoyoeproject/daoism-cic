@@ -15,6 +15,33 @@ type case_info =
     ci_cstrs      : (int * int) array; (* fst > snd *)
   }
 
+let compare_array f a1 a2 =
+  let rec aux i size =
+    if i = size
+    then 0
+    else
+      let c = f a1.(i) a2.(i) in
+      if c = 0
+      then aux (i + 1) size
+      else c
+  in
+  let s1 = Array.length a1 in
+  let s2 = Array.length a2 in
+  let c1 = Int.compare s1 s2 in
+  if c1 = 0
+  then aux 0 s1
+  else c1
+
+let comare_case_info ci1 ci2 =
+  let aux (i11, i12) (i21, i22) =
+    let c = Int.compare i11 i21 in
+    if c = 0 then Int.compare i12 i22 else c
+  in
+  let c = Names.compare_inductive ci1.ci_ind ci2.ci_ind in
+  let c = if c = 0 then Int.compare ci1.ci_npar ci2.ci_npar else c in
+  let c = if c = 0 then compare_array aux ci1.ci_cstrs ci2.ci_cstrs else c in
+  c
+
 (* [constr array] is an instance matching definitional [named_context] in
    the same order (i.e. last argument first) *)
 type 'constr pexistential = Evar.t * 'constr array
@@ -35,13 +62,82 @@ type t =
   | Lambda    of Name.t * t * t
   | LetIn     of Name.t * t * t * t
   | App       of t * t array
-  | Const     of (Constant.t * int )
+  | Const     of (Constant.t * int)
   | Ind       of (inductive * int)
   | Construct of (constructor * int)
   | Case      of case_info * t * t * t array
   | Fix       of (t, t) pfixpoint
   | Int       of int
   | Float     of float
+
+let to_compare_index t =
+  match t with
+  | Rel _ -> 0
+  | Var _ -> 1
+  | Evar _ -> 2
+  | Prod _ -> 3
+  | Lambda _ -> 4
+  | LetIn _ -> 5
+  | App _ -> 6
+  | Const _ -> 7
+  | Ind _ -> 8
+  | Construct _ -> 9
+  | Case _ -> 10
+  | Fix _ -> 11
+  | Int _ -> 12
+  | Float _ -> 13
+
+let rec compare t1 t2 =
+  let compare_pexistential p1 p2 =
+    let (e1, arr1) = p1 in
+    let (e2, arr2) = p2 in
+    let c = Evar.compare e1 e2 in
+    if c = 0 then compare_array compare arr1 arr2 else c
+  in
+  let compare_prec_declaration p1 p2 =
+    let (arr11, arr12, arr13) = p1 in
+    let (arr21, arr22, arr23) = p2 in
+    let c = compare_array Name.compare arr11 arr21 in
+    let c = if c = 0 then compare_array compare arr12 arr22 else c in
+    let c = if c = 0 then compare_array compare arr13 arr23 else c in
+    c
+  in
+  let compare_pfixpoint p1 p2 =
+    let ((arr1, i1), p1) = p1 in
+    let ((arr2, i2), p2) = p2 in
+    let c = compare_array Int.compare arr1 arr2 in
+    let c = if c = 0 then Int.compare i1 i2 else c in
+    let c = if c = 0 then compare_prec_declaration p1 p2 else c in
+    c
+  in
+  match t1, t2 with
+  | Rel i1, Rel i2 -> Int.compare i1 i2
+  | Var id1, Var id2 -> Id.compare id1 id2
+  | Evar e1, Evar e2 -> compare_pexistential e1 e2
+  | Prod (_, t1, b1), Prod (_, t2, b2) -> compare_array compare [| t1; b1 |] [| t2; b2 |]
+  | Lambda (_, t1, b1), Lambda (_, t2, b2) -> compare_array compare [| t1; b1 |] [| t2; b2 |]
+  | LetIn (_, a1, t1, b1), LetIn (_, a2, t2, b2) -> compare_array compare [| a1; t1; b1 |] [| a2; t2; b2 |]
+  | App (t1, arr1), App (t2, arr2) ->
+    let c = compare t1 t2 in
+    if c = 0 then compare_array compare arr1 arr2 else c
+  | Const (con1, i1), Const (con2, i2) ->
+    let c = Constant.compare con1 con2 in
+    if c = 0 then Int.compare i1 i2 else c
+  | Ind (ind1, i1), Ind (ind2, i2) ->
+    let c = Names.compare_inductive ind1 ind2 in
+    if c = 0 then Int.compare i1 i2 else c
+  | Construct (c1, i1), Construct (c2, i2) ->
+    let c = Names.compare_constructor c1 c2 in
+    if c = 0 then Int.compare i1 i2 else c
+  | Case (ci1, t1, c1, arr1), Case (ci2, t2, c2, arr2) ->
+    let c = comare_case_info ci1 ci2 in
+    let c = if c = 0 then compare_array compare [| t1; c1 |] [| t2; c2 |] else c in
+    let c = if c = 0 then compare_array compare arr1 arr2 else c in
+    c
+  | Fix f1, Fix f2 -> compare_pfixpoint f1 f2
+  | Int i1, Int i2 -> Int.compare i1 i2
+  | Float f1, Float f2 -> Float.compare f1 f2
+  | _, _ -> Int.compare (to_compare_index t1) (to_compare_index t2)
 
 let mkRel n = Rel n
 
