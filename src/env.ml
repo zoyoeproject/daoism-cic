@@ -56,6 +56,9 @@ let push_named d env = {
 let lookup_named id env =
   (Id.Map.find id env.env_named_context)
 
+let fold_constants f acc env =
+ConstantMap.fold (fun c r acc -> f c r.entry_body r.entry_type acc) env.env_globals acc
+
 (*
 
 let lookup_named_ctxt id ctxt =
