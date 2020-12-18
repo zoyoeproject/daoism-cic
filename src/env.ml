@@ -1,35 +1,56 @@
 open Names
 
-module ConstantMap =  Map.Make(Constant)
+module InfoMap =  Map.Make(KerName)
 
-type global_entry = {
+type constant_info = {
   entry_body: Constr.t option;
   entry_type: Constr.t;
 }
 
-let mk_entry a b = {entry_body=a; entry_type=b}
+type mind_info = Mind.inductive_block
+
+type global_entry =
+  | CST of constant_info
+  | MUTIND of mind_info
+
+let mk_constant_info a b = CST {entry_body=a; entry_type=b}
+let mk_mind_info i = MUTIND i
+
+exception DestGlobalInfo
+
+let destCST c = match c with
+  | CST e -> e
+  | _ -> raise DestGlobalInfo
+
+let destMUTIND c = match c with
+  | MUTIND e -> e
+  | _ -> raise DestGlobalInfo
 
 type env = {
-  env_globals : global_entry ConstantMap.t;
+  env_globals : global_entry InfoMap.t;
   env_named_context : Constr.named_declaration Id.Map.t;
   env_rel_context   : Constr.rel_context;
   env_export        : Id.Set.t;
   env_nb_rel: int;
 }
 
-let lookup_constant env c = ConstantMap.find c env.env_globals
+let lookup_constant env c = destCST @@ InfoMap.find c env.env_globals
+let lookup_mutind env c = destMUTIND @@ InfoMap.find c env.env_globals
 
 let add_constant c body t env = {
-    env with env_globals = ConstantMap.add c (mk_entry body t) env.env_globals
-  }
+    env with env_globals = InfoMap.add c (mk_constant_info body t) env.env_globals
+}
+
+let add_mutind c mind_info env = {
+    env with env_globals = InfoMap.add c (mk_mind_info mind_info) env.env_globals
+}
 
 let export id env = {
   env with env_export = Id.Set.add id env.env_export
 }
 
-
 let empty_env = {
-  env_globals = ConstantMap.empty;
+  env_globals = InfoMap.empty;
   env_named_context = Id.Map.empty;
   env_rel_context = [];
   env_export = Id.Set.empty;
@@ -57,7 +78,13 @@ let lookup_named id env =
   (Id.Map.find id env.env_named_context)
 
 let fold_constants f acc env =
-ConstantMap.fold (fun c r acc -> f c r.entry_body r.entry_type acc) env.env_globals acc
+  InfoMap.fold (fun c r acc ->
+    try
+      let r = destCST r in
+      f c r.entry_body r.entry_type acc
+    with DestGlobalInfo ->
+      acc
+  ) env.env_globals acc
 
 (*
 
