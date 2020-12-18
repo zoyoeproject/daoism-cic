@@ -32,7 +32,7 @@ let compare_array f a1 a2 =
   then aux 0 s1
   else c1
 
-let comare_case_info ci1 ci2 =
+let compare_case_info ci1 ci2 =
   let aux (i11, i12) (i21, i22) =
     let c = Int.compare i11 i21 in
     if c = 0 then Int.compare i12 i22 else c
@@ -130,7 +130,7 @@ let rec compare t1 t2 =
     let c = Names.compare_constructor c1 c2 in
     if c = 0 then Int.compare i1 i2 else c
   | Case (ci1, t1, c1, arr1), Case (ci2, t2, c2, arr2) ->
-    let c = comare_case_info ci1 ci2 in
+    let c = compare_case_info ci1 ci2 in
     let c = if c = 0 then compare_array compare [| t1; c1 |] [| t2; c2 |] else c in
     let c = if c = 0 then compare_array compare arr1 arr2 else c in
     c
