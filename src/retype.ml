@@ -38,7 +38,8 @@ let rec type_of env cstr =
   | Const (cst, _) -> type_of_constant env cst
   | Ind _ (*ind, u*) -> assert false
   | Construct _ (*cstr, u*) -> assert false
-  | Case _ (*_,p,c,lf*) -> assert false (* Not implemented due to recursive type *)
+  | Case (_, p, _, _) -> (* Not implemented due to recursive type *)
+    p (* Should be mkApp p XXX *)
   | Lambda (name,c1,c2) ->
         mkProd (name, c1, type_of (Env.push_rel (LocalAssum (name,c1)) env) c2)
   | LetIn (name,b,c1,c2) ->
