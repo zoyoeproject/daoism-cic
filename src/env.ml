@@ -45,10 +45,11 @@ let add_mutind c mind_info env = {
     env with env_globals = InfoMap.add c (mk_mind_info mind_info) env.env_globals
 }
 
-let get_case_info (ind,i) block =
+let get_case_info env (ind,i) =
   let open Mind in
   let open Constr in
-  let cell = block.cells.(i+1) in
+  let block = lookup_mutind env ind in
+  let cell = block.cells.(i) in
   {
     ci_ind = (ind, i);
     ci_npar = List.length cell.cell_ctxt;
