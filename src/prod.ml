@@ -21,13 +21,13 @@ let rec mk_select eles k e : Constr.t =
   | [] -> assert false
   | [e, _] when k == 0 -> e
   | [(_, hd); (_, tl)] when k == 0 ->
-    Constr.mkApp (CoreType.fst, [|hd;tl;e|])
+    Constr.mkApp (CoreType.fst_const, [|hd;tl;e|])
   | [(_, hd); (_, tl)] when k == 1 ->
-    Constr.mkApp (CoreType.snd, [|hd;tl;e|])
+    Constr.mkApp (CoreType.snd_const, [|hd;tl;e|])
   | (_, hd) :: tl when k < List.length eles ->
       let e = mk_select tl (k-1) e in
       let types = List.map (fun c -> snd c) tl in
-      Constr.mkApp (CoreType.snd, [|hd;mk_prod_type types;e|])
+      Constr.mkApp (CoreType.snd_const, [|hd;mk_prod_type types;e|])
   | _ -> assert false
 
 

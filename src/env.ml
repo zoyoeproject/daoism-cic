@@ -5,6 +5,7 @@ module InfoMap =  Map.Make(KerName)
 type constant_info = {
   entry_body: Constr.t option;
   entry_type: Constr.t;
+  info: Name.t array;
 }
 
 type mind_info = Mind.inductive_block
@@ -13,7 +14,7 @@ type global_entry =
   | CST of constant_info
   | MUTIND of mind_info
 
-let mk_constant_info a b = CST {entry_body=a; entry_type=b}
+let mk_constant_info a b i = CST {entry_body=a; entry_type=b; info=i }
 let mk_mind_info i = MUTIND i
 
 exception DestGlobalInfo
@@ -37,8 +38,8 @@ type env = {
 let lookup_constant env c = destCST @@ InfoMap.find c env.env_globals
 let lookup_mutind env c = destMUTIND @@ InfoMap.find c env.env_globals
 
-let add_constant c body t env = {
-    env with env_globals = InfoMap.add c (mk_constant_info body t) env.env_globals
+let add_constant c body t info env = {
+    env with env_globals = InfoMap.add c (mk_constant_info body t info) env.env_globals
 }
 
 let add_mutind c mind_info env = {

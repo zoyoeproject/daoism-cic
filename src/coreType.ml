@@ -14,8 +14,8 @@ let int_type = Constr.Const (c_int_type, 0)
 let float_type = Constr.Const (c_float_type, 0)
 let bool_type = Constr.mkInd (i_bool, 0)
 let prod_type = Constr.mkInd (i_prod, 0)
-let fst = Constr.Const (c_fst, 0)
-let snd = Constr.Const (c_snd, 0)
+let fst_const = Constr.Const (c_fst, 0)
+let snd_const = Constr.Const (c_snd, 0)
 
 let pair = Constr.mkConstruct ((i_prod, 0), 0)
 
