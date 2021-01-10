@@ -10,9 +10,22 @@ type retype_error =
   | BadVariable of Id.t
   | NonFunctionalConstruction
 
+let retype_error_to_string = function
+  | NotASort -> "Not a sort"
+  | NotAType -> "Not a type"
+  | BadVariable id -> "Bad variable " ^ (Id.to_string id)
+  | NonFunctionalConstruction -> "NonFunctionConstruction"
+
 exception RetypeError of retype_error
 
 let retype_error re = raise (RetypeError re)
+
+let () =
+  Printexc.register_printer
+    (function
+      | RetypeError err -> Some (retype_error_to_string err)
+      | _ -> None (* for other exceptions *)
+    )
 
 let type_of_var env id =
   try NamedDecl.get_type (Env.lookup_named id env)

@@ -2,9 +2,6 @@
 
 exception OutOfTupleBoundary
 
-let mk_pair (x, tx, y, ty) =
-  Constr.mkApp (CoreType.pair, [|tx;ty;x;y|])
-
 let mk_prod_type types =
   List.fold_right (fun c acc -> Constr.mkApp (CoreType.prod_type, [|c; acc|]))
     (List.tl types) (List.hd types)

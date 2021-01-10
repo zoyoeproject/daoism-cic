@@ -101,6 +101,15 @@ let fold_constants f acc env =
       acc
   ) env.env_globals acc
 
+let fold_minds f acc env =
+  InfoMap.fold (fun c r acc ->
+    try
+      let r = destMUTIND r in
+      f c r acc
+    with DestGlobalInfo ->
+      acc
+  ) env.env_globals acc
+
 (*
 
 let lookup_named_ctxt id ctxt =
