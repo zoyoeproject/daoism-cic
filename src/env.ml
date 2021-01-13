@@ -35,6 +35,7 @@ type env = {
   env_nb_rel: int;
 }
 
+let lookup_global_entry env c = InfoMap.find c env.env_globals
 let lookup_constant env c = destCST @@ InfoMap.find c env.env_globals
 let lookup_mutind env c = destMUTIND @@ InfoMap.find c env.env_globals
 
