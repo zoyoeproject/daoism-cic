@@ -6,7 +6,7 @@ let mk_prod_type types =
   List.fold_right (fun c acc -> Constr.mkApp (CoreType.prod_type, [|c; acc|]))
     (List.tl types) (List.hd types)
 
-let rec mk_pair eles =
+let mk_pair eles =
   List.fold_right (fun (c,t) (c', t') ->
     Constr.mkApp (CoreType.pair, [|t; t'; c; c'|])
     , Constr.mkApp (CoreType.prod_type, [|t; t'|])
