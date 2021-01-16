@@ -65,6 +65,9 @@ let export id env = {
   env with env_export = Id.Set.add id env.env_export
 }
 
+let is_exported id env =
+  Id.Set.mem id env.env_export
+
 let empty_env = {
   env_globals = InfoMap.empty;
   env_named_context = Id.Map.empty;
