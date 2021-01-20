@@ -14,11 +14,13 @@ let mk_pair eles =
 
 (* Select the kth elements of e (t_1 * t2 * t3 * tk ....) *)
 let rec mk_select eles k e : Constr.t =
+  Js.log (Printf.sprintf "k is %d" k);
   match eles with
   | [] -> assert false
   | [e, _] when k == 0 -> e
-  | [(_, hd); (_, tl)] when k == 0 ->
-    Constr.mkApp (CoreType.fst_const, [|hd;tl;e|])
+  | (_, hd) :: tl when k == 0 ->
+    let types = List.map (fun c -> snd c) tl in
+    Constr.mkApp (CoreType.fst_const, [|hd;mk_prod_type types;e|])
   | [(_, hd); (_, tl)] when k == 1 ->
     Constr.mkApp (CoreType.snd_const, [|hd;tl;e|])
   | (_, hd) :: tl when k < List.length eles ->
@@ -26,5 +28,3 @@ let rec mk_select eles k e : Constr.t =
       let types = List.map (fun c -> snd c) tl in
       Constr.mkApp (CoreType.snd_const, [|hd;mk_prod_type types;e|])
   | _ -> assert false
-
-
