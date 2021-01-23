@@ -100,7 +100,7 @@ let fold_constants f acc env =
   InfoMap.fold (fun c r acc ->
     try
       let r = destCST r in
-      f c r.entry_body r.entry_type acc
+      f c r acc
     with DestGlobalInfo ->
       acc
   ) env.env_globals acc
