@@ -17,7 +17,7 @@ let rec mk_select eles k e : Constr.t =
   Js.log (Printf.sprintf "k is %d" k);
   match eles with
   | [] -> assert false
-  | [e, _] when k == 0 -> e
+  | [_] when k == 0 -> e
   | (_, hd) :: tl when k == 0 ->
     let types = List.map (fun c -> snd c) tl in
     Constr.mkApp (CoreType.fst_const, [|hd;mk_prod_type types;e|])
