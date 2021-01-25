@@ -42,6 +42,14 @@ let rec subst_type env typ = function
         | Prod (_,_,c2) -> subst_type env (Vars.subst1 h c2) rest
         | _ -> retype_error NonFunctionalConstruction
 
+let type_of_construct env ((ind,k),i) =
+  let minfo = Env.lookup_mutind env ind in
+  let cell = minfo.cells.(k) in
+  let cons = snd (cell.cell_cons.(i)) in
+  Array.fold_right (fun (n, t) acc ->
+    mkProd (n, t, acc)
+  ) cons (mkInd (ind, k))
+
 let rec type_of env cstr =
   match cstr with
   | Rel n ->
@@ -50,7 +58,7 @@ let rec type_of env cstr =
   | Var id -> type_of_var env id
   | Const (cst, _) -> type_of_constant env cst
   | Ind _ (*ind, u*) -> assert false
-  | Construct _ (*cstr, u*) -> assert false
+  | Construct (cstr, _) -> type_of_construct env cstr
   | Case (_, p, _, _) -> (* Not implemented due to recursive type *)
     p (* Should be mkApp p XXX *)
   | Lambda (name,c1,c2) ->
