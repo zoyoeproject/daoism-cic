@@ -1,7 +1,7 @@
 open Names
 exception Found of (constructor * int)
 exception UnknownField
-let iterp_project ident env =
+let interp_project ident env =
    let open Mind in
    try
      ignore @@ Env.fold_minds (fun c ibody _ ->
