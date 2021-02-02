@@ -43,6 +43,7 @@ let prod_ind =
 let bootstrap_env =
   let env = Env.empty_env in
   env
-  |> Env.add_constant c_int_type None base_type [||]
+  |> Env.add_constant c_int_type None base_type [||] [||]
+  |> Env.add_constant c_float_type None base_type [||] [||]
   |> Env.add_mutind i_bool bool_ind
   |> Env.add_mutind i_prod prod_ind
