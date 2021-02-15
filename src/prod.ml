@@ -52,3 +52,15 @@ let parse_select c =
     | _ -> assert false
   in
   aux c 0
+
+let type_list_of_tuple_type c =
+  let rec aux c =
+    match c with
+    | App (op, [|t; tl|]) when Constr.compare op prod_type = 0 -> t :: aux tl
+    | _ -> [c]
+  in
+  aux c
+
+let type_list_of_tuple_body env c =
+  let t = Retype.type_of env c in
+  type_list_of_tuple_type t
