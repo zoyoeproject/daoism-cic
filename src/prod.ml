@@ -43,7 +43,7 @@ let mk_select eles k e : Constr.t =
 
 let is_select c =
   match c with
-  | App (op, [|_; _; _|]) when is_const_snd op || is_const_snd op -> true
+  | App (op, [|_; _; _|]) when is_const_fst op || is_const_snd op -> true
   | _ -> false
 
 (* Parse the select of a tuple, return idx, type, and tuple constr *)
