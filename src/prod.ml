@@ -21,21 +21,25 @@ let mk_pair eles =
       , mkApp (CoreType.prod_type, [|t; t'|]) ) )
     (List.tl eles) (List.hd eles)
 
-(* Select the kth elements of e (t_1 * t2 * t3 * tk ....) *)
-let rec mk_select eles k e : Constr.t =
-  Js.log (Printf.sprintf "k is %d" k) ;
-  match eles with
+let rec mk_select_with_type_list type_list k e =
+  match type_list with
   | [] -> assert false
-  | [_] when k == 0 -> e
-  | (_, hd) :: tl when k == 0 ->
-      let types = List.map (fun c -> snd c) tl in
-      mkApp (CoreType.fst_const, [|hd; mk_prod_type types; e|])
-  | [(_, hd); (_, tl)] when k == 1 -> mkApp (CoreType.snd_const, [|hd; tl; e|])
-  | (_, hd) :: tl when k < List.length eles ->
-      let e = mk_select tl (k - 1) e in
-      let types = List.map (fun c -> snd c) tl in
-      mkApp (CoreType.snd_const, [|hd; mk_prod_type types; e|])
+  | [ _ ] when k == 0 -> e
+  | [ t1; t2 ] when k == 0 ->
+    mkApp (fst_const, [| t1; t2; e |])
+  | [ t1; t2 ] when k == 1 ->
+    mkApp (snd_const, [| t1; t2; e |])
+  | t :: tl when k = 0 ->
+    mkApp (fst_const, [| t; mk_prod_type tl; e |])
+  | t :: tl when k < List.length type_list ->
+      let e = mk_select_with_type_list tl (k - 1) e in
+      mkApp (snd_const, [| t; mk_prod_type tl; e |])
   | _ -> assert false
+
+(* Select the kth elements of e (t_1 * t2 * t3 * tk ....) *)
+let mk_select eles k e : Constr.t =
+  let type_list = List.map snd eles in
+  mk_select_with_type_list type_list k e
 
 let is_select c =
   match c with
