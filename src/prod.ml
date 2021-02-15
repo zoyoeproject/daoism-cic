@@ -52,7 +52,7 @@ let parse_select c =
     match c with
     | App (op, [|t; _; inner|]) when is_const_fst op -> (idx, t, inner)
     | App (op, [|_; t; inner|]) when is_const_snd op ->
-        if is_select c then aux inner (idx + 1) else (idx + 1, t, inner)
+        if is_select inner then aux inner (idx + 1) else (idx + 1, t, inner)
     | _ -> assert false
   in
   aux c 0
