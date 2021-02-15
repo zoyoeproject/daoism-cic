@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "ocamlformat -i",
     "postinstall": "bsb"
   },
   "author": "xgao@zoyoe.com <xgao@zoyoe.com>",
