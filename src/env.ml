@@ -33,6 +33,7 @@ type env = {
   env_named_context : Constr.named_declaration Id.Map.t;
   env_rel_context   : Constr.rel_context;
   env_export        : Id.Set.t;
+  env_static        : Id.Set.t;
   env_nb_rel: int;
 }
 
@@ -74,6 +75,7 @@ let empty_env = {
   env_named_context = Id.Map.empty;
   env_rel_context = [];
   env_export = Id.Set.empty;
+  env_static = Id.Set.empty;
   env_nb_rel = 0;
 }
 
@@ -89,13 +91,18 @@ let lookup_rel n env =
     raise Not_found
 
 (* Named context *)
-let push_named d env = {
-  env with env_named_context =
-    Id.Map.add (Context.Named.Declaration.get_id d) d env.env_named_context
+let push_named d ?static:(s=false) env =
+  let id = Context.Named.Declaration.get_id d in
+  { env with
+    env_named_context = Id.Map.add id d env.env_named_context;
+    env_static = if s then Id.Set.add id env.env_static else env.env_static
   }
 
 let lookup_named id env =
   (Id.Map.find id env.env_named_context)
+
+let is_static id env =
+  (match Id.Set.find_opt id env.env_static with | None -> false | _ -> true)
 
 let fold_constants f acc env =
   InfoMap.fold (fun c r acc ->
