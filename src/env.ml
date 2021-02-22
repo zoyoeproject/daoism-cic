@@ -98,6 +98,12 @@ let push_named d ?static:(s=false) env =
     env_static = if s then Id.Set.add id env.env_static else env.env_static
   }
 
+let remove_named id env =
+  { env with
+    env_named_context = Id.Map.remove id env.env_named_context;
+    env_static = Id.Set.remove id env.env_static
+  }
+
 let lookup_named id env =
   (Id.Map.find id env.env_named_context)
 
