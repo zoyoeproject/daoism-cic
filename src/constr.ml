@@ -61,6 +61,7 @@ type t =
   | Prod      of Name.t * t * t
   | Lambda    of Name.t * t * t
   | LetIn     of Name.t * t * t * t
+  | Abstract  of Name.t * t
   | App       of t * t array
   | Const     of (Constant.t * int)
   | Ind       of (inductive * int)
@@ -78,14 +79,15 @@ let to_compare_index t =
   | Prod _ -> 3
   | Lambda _ -> 4
   | LetIn _ -> 5
-  | App _ -> 6
-  | Const _ -> 7
-  | Ind _ -> 8
-  | Construct _ -> 9
-  | Case _ -> 10
-  | Fix _ -> 11
-  | Int _ -> 12
-  | Float _ -> 13
+  | Abstract _ -> 6
+  | App _ -> 7
+  | Const _ -> 8
+  | Ind _ -> 9
+  | Construct _ -> 10
+  | Case _ -> 11
+  | Fix _ -> 12
+  | Int _ -> 13
+  | Float _ -> 14
 
 let rec compare t1 t2 =
   let compare_pexistential p1 p2 =
@@ -149,6 +151,8 @@ let mkLambda (x,t1,t2) = Lambda (x,t1,t2)
 
 (* Constructs [x=c_1:t]c_2 *)
 let mkLetIn (x,c1,t,c2) = LetIn (x,c1,t,c2)
+
+let mkAbstract (x,c) = Abstract (x,c)
 
 (* If lt = [t1; ...; tn], constructs the application (t1 ... tn) *)
 (* We ensure applicative terms have at least one argument and the
@@ -342,6 +346,7 @@ let fold f acc c = match c with
   | Lambda (_,t,c) -> f (f acc t) c
   | LetIn (_,b,t,c) -> f (f (f acc b) t) c
   | App (c,l) -> Array.fold_left f (f acc c) l
+  | Abstract (na,c) -> f acc c
   | Evar (_,l) -> Array.fold_left f acc l
   | Case (_,p,c,bl) -> Array.fold_left f (f (f acc p) c) bl
   | Fix (_,(_lna,tl,bl)) ->
@@ -358,6 +363,7 @@ let iter f c = match c with
   | Lambda (_,t,c) -> f t; f c
   | LetIn (_,b,t,c) -> f b; f t; f c
   | App (c,l) -> f c; Array.iter f l
+  | Abstract (_,c) -> f c
   | Evar (_,l) -> Array.iter f l
   | Case (_,p,c,bl) -> f p; f c; Array.iter f bl
   | Fix (_,(_,tl,bl)) -> Array.iter f tl; Array.iter f bl
@@ -374,6 +380,7 @@ let iter_with_binders g f n c = match c with
   | Lambda (_,t,c) -> f n t; f (g n) c
   | LetIn (_,b,t,c) -> f n b; f n t; f (g n) c
   | App (c,l) -> f n c; Array.iter (fun x-> f n x) l
+  | Abstract (_, c) -> f n c
   | Evar (_,l) -> Array.iter (fun x-> f n x) l
   | Case (_,p,c,bl) -> f n p; f n c; Array.iter (fun x -> f n x) bl
   | Fix (_,(_,tl,bl)) ->
@@ -394,6 +401,7 @@ let fold_constr_with_binders g f n acc c =
   | Lambda (_na,t,c) -> f (g  n) (f n acc t) c
   | LetIn (_na,b,t,c) -> f (g  n) (f n (f n acc b) t) c
   | App (c,l) -> Array.fold_left (f n) (f n acc c) l
+  | Abstract (_,c) -> f n acc c
   | Evar (_,l) -> Array.fold_left (f n) acc l
   | Case (_,p,c,bl) -> Array.fold_left (f n) (f n (f n acc p) c) bl
   | Fix (_,(_,tl,bl)) ->
@@ -428,6 +436,10 @@ let map f c = match c with
       let l' = Array.map f l in
       if b'==b && l'==l then c
       else mkApp (b', l')
+  | Abstract (na, b) ->
+      let b' = f b in
+      if b' == b then c
+      else mkAbstract(na, b)
   | Evar (e,l) ->
       let l' = Array.map f l in
       if l'==l then c
@@ -501,6 +513,10 @@ let map_with_binders g f l c0 = match c0 with
     let al' = Array.map (fun x -> f l x) al in
     if c' == c && al' == al then c0
     else mkApp (c', al')
+  | Abstract (na, c) ->
+    let c' = f l c in
+    if c' == c then c0
+    else mkAbstract (na, c')
   | Evar (e, al) ->
     let al' = Array.map (fun x -> f l x) al in
     if al' == al then c0
@@ -548,6 +564,7 @@ let fold_with_full_binders g f n acc c =
   | LetIn (na,b,t,c) -> f (g (LocalDef (na,b,t)) n) (f n (f n acc b) t) c
   | App (c,l) -> Array.fold_left (f n) (f n acc c) l
   | Evar (_,l) -> Array.fold_left (f n) acc l
+  | Abstract (_, c) -> f n acc c
   | Case (_,p,c,bl) -> Array.fold_left (f n) (f n (f n acc p) c) bl
   | Fix (_,(lna,tl,bl)) ->
       let n' = array_fold_left2_i (fun i c n t -> g (LocalAssum (n,lift i t)) c) n lna tl in

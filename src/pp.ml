@@ -19,6 +19,8 @@ let rec to_string c =
     "Let " ^ Names.Name.to_string name ^ ": "
     ^ to_string typ ^ " = " ^ to_string argbody
     ^ " in " ^ to_string body
+  | Abstract (na, c) ->
+    "Abstract(" ^ Names.Name.to_string na ^ "," ^ to_string c ^ ")"
   | App(func, args) ->
     "App(" ^ to_string func ^ ", [|"
     ^ Array.fold_left(fun s t -> s ^ to_string t ^ "; ") "" args
