@@ -2,12 +2,19 @@
 
 open Constr
 open MiniCic.CoreType
+open Names
 
 exception OutOfTupleBoundary
 
 let is_const_fst c = Constr.compare c fst_const = 0
 
 let is_const_snd c = Constr.compare c snd_const = 0
+
+let mk_prod_type_with_name types =
+  let id, t = List.hd types in
+  List.fold_right
+    (fun (id, c) acc -> mkApp (prod_type, [|mkAbstract (Name.Name id, c); acc|]))
+    (List.tl types) (mkAbstract (Name.Name id, t))
 
 let mk_prod_type types =
   List.fold_right
