@@ -12,7 +12,7 @@ let repeat n f x =
 type case_info =
   { ci_ind        : inductive;      (* inductive type to which belongs the value that is being matched *)
     ci_npar       : int;            (* number of parameters of the above inductive type *)
-    ci_cstrs      : (int * int) array; (* fst > snd *)
+    ci_cstrs      : (Name.t * int) array; (* fst > snd *)
   }
 
 let compare_array f a1 a2 =

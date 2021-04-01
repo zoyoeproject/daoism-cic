@@ -57,9 +57,9 @@ let get_case_info env (ind,i) =
   {
     ci_ind = (ind, i);
     ci_npar = List.length cell.cell_ctxt;
-    ci_cstrs = Array.map (fun (_, binders) ->
+    ci_cstrs = Array.map (fun (n, binders) ->
       let k = Array.length binders in
-      (k, k)
+      (n, k)
     ) cell.cell_cons;
   }
 
